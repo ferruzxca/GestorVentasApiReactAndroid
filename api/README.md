@@ -2,7 +2,27 @@
 
 API REST para inventario de accesorios de computo.
 
-## Inicio rapido
+## Base de datos obligatoria
+
+La API usa **MySQL remoto (Aiven)** via `DATABASE_URL`.
+No usa SQLite.
+
+Script SQL de inicializacion:
+- `sql/aiven_init.sql`
+
+Ejecutar en Aiven:
+
+```bash
+mysql \
+  --host="$AIVEN_HOST" \
+  --port="$AIVEN_PORT" \
+  --user="$AIVEN_USER" \
+  --password \
+  --ssl-mode=REQUIRED \
+  "$AIVEN_DB" < sql/aiven_init.sql
+```
+
+## Inicio rapido (desarrollo)
 
 ```bash
 npm install
@@ -28,4 +48,8 @@ npm run dev
 - `PORT` (default `4000`)
 - `JWT_SECRET`
 - `CORS_ORIGIN`
-- `DB_PATH` (default `data/gestor.db`)
+- `DATABASE_URL` (Aiven MySQL)
+- `MYSQL_SSL`
+- `MYSQL_SSL_REJECT_UNAUTHORIZED`
+- `AUTO_INIT_DB`
+- `SEED_INITIAL_DATA`

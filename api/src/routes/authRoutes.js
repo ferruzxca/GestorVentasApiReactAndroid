@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { db } from '../db.js';
+import { query } from '../db.js';
 import { requireAuth, signToken } from '../middleware/auth.js';
 
 const router = Router();
 
-router.post('/login', (req, res) => {
+router.post('/login', async (req, res) => {
   const { nombre } = req.body || {};
 
   if (!nombre || typeof nombre !== 'string') {
@@ -14,42 +14,62 @@ router.post('/login', (req, res) => {
     });
   }
 
-  const user = db
-    .prepare('SELECT id, nombre, rol, status FROM usuarios WHERE nombre = ?')
-    .get(nombre.trim());
+  try {
+    const result = await query(
+      'SELECT id, nombre, rol, status FROM usuarios WHERE nombre = ?',
+      [nombre.trim()]
+    );
 
-  if (!user || user.status !== 'activo') {
-    return res.status(401).json({
+    const user = result.rows[0] || null;
+
+    if (!user || user.status !== 'activo') {
+      return res.status(401).json({
+        ok: false,
+        message: 'Usuario no encontrado o inactivo'
+      });
+    }
+
+    const token = signToken(user);
+
+    return res.json({
+      ok: true,
+      token,
+      user
+    });
+  } catch (_error) {
+    return res.status(500).json({
       ok: false,
-      message: 'Usuario no encontrado o inactivo'
+      message: 'No fue posible autenticar el usuario'
     });
   }
-
-  const token = signToken(user);
-
-  return res.json({
-    ok: true,
-    token,
-    user
-  });
 });
 
-router.get('/profile', requireAuth, (req, res) => {
-  const dbUser = db
-    .prepare('SELECT id, nombre, rol, status FROM usuarios WHERE id = ?')
-    .get(req.user.id);
+router.get('/profile', requireAuth, async (req, res) => {
+  try {
+    const result = await query(
+      'SELECT id, nombre, rol, status FROM usuarios WHERE id = ?',
+      [req.user.id]
+    );
 
-  if (!dbUser || dbUser.status !== 'activo') {
-    return res.status(401).json({
+    const dbUser = result.rows[0] || null;
+
+    if (!dbUser || dbUser.status !== 'activo') {
+      return res.status(401).json({
+        ok: false,
+        message: 'Usuario invalido o inactivo'
+      });
+    }
+
+    return res.json({
+      ok: true,
+      user: dbUser
+    });
+  } catch (_error) {
+    return res.status(500).json({
       ok: false,
-      message: 'Usuario invalido o inactivo'
+      message: 'No fue posible consultar el perfil'
     });
   }
-
-  return res.json({
-    ok: true,
-    user: dbUser
-  });
 });
 
 export default router;

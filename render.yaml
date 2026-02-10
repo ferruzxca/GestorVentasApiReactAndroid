@@ -4,19 +4,24 @@ services:
     runtime: docker
     rootDir: api
     plan: free
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
       - key: JWT_SECRET
         generateValue: true
-      - key: DB_PATH
-        value: data/gestor.db
+      - key: DATABASE_URL
+        sync: false
+      - key: MYSQL_SSL
+        value: true
+      - key: MYSQL_SSL_REJECT_UNAUTHORIZED
+        value: false
+      - key: AUTO_INIT_DB
+        value: true
+      - key: SEED_INITIAL_DATA
+        value: true
       - key: CORS_ORIGIN
-        value: https://gestor-tecnologia-web.onrender.com
-    disk:
-      name: gestor-tecnologia-db
-      mountPath: /app/data
-      sizeGB: 1
+        sync: false
 
   - type: web
     name: gestor-tecnologia-web
@@ -25,4 +30,4 @@ services:
     plan: free
     envVars:
       - key: VITE_API_URL
-        value: https://gestor-tecnologia-api.onrender.com
+        sync: false

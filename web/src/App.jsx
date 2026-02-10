@@ -294,7 +294,8 @@ export default function App() {
         <article className="status-card">
           <h2>Conexion DB</h2>
           <p>Engine: {connection?.engine || '-'}</p>
-          <p>Ruta: {connection?.databasePath || '-'}</p>
+          <p>Host: {connection?.host || '-'}</p>
+          <p>DB: {connection?.database || connection?.databasePath || '-'}</p>
           <p>
             Estado: <span className={connection?.status === 'connected' ? 'ok' : 'error'}>{connection?.status || '-'}</span>
           </p>

@@ -8,6 +8,7 @@ import authRoutes from './routes/authRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import metaRoutes from './routes/metaRoutes.js';
+import { initDatabase } from './db.js';
 
 const app = express();
 const PORT = Number.parseInt(process.env.PORT || '4000', 10);
@@ -41,9 +42,19 @@ app.use((error, _req, res, _next) => {
   res.status(500).json({ ok: false, message });
 });
 
-app.listen(PORT, () => {
+async function startServer() {
+  await initDatabase();
+
+  app.listen(PORT, () => {
+    // eslint-disable-next-line no-console
+    console.log(`API lista en http://localhost:${PORT}`);
+    // eslint-disable-next-line no-console
+    console.log(`Dashboard en http://localhost:${PORT}/dashboard`);
+  });
+}
+
+startServer().catch((error) => {
   // eslint-disable-next-line no-console
-  console.log(`API lista en http://localhost:${PORT}`);
-  // eslint-disable-next-line no-console
-  console.log(`Dashboard en http://localhost:${PORT}/dashboard`);
+  console.error('Error al iniciar API:', error instanceof Error ? error.message : error);
+  process.exit(1);
 });

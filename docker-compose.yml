@@ -8,10 +8,12 @@ services:
     environment:
       - PORT=4000
       - JWT_SECRET=demo-secret-local
-      - DB_PATH=data/gestor.db
       - CORS_ORIGIN=http://localhost:5173
-    volumes:
-      - api_data:/app/data
+      - DATABASE_URL=${DATABASE_URL}
+      - MYSQL_SSL=${MYSQL_SSL:-true}
+      - MYSQL_SSL_REJECT_UNAUTHORIZED=${MYSQL_SSL_REJECT_UNAUTHORIZED:-false}
+      - AUTO_INIT_DB=true
+      - SEED_INITIAL_DATA=true
 
   web:
     build:
@@ -23,6 +25,3 @@ services:
       - '5173:80'
     depends_on:
       - api
-
-volumes:
-  api_data:

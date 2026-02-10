@@ -8,6 +8,13 @@ export const ROUTE_CATALOG = [
       ok: true,
       api: 'gestor-tecnologia',
       db: 'connected',
+      environment: 'production',
+      nodeVersion: 'v22.14.0',
+      memory: {
+        rssMB: 86.73,
+        heapUsedMB: 29.17,
+        heapTotalMB: 39.42
+      },
       uptimeSeconds: 123.45,
       timestamp: '2026-02-10T18:30:00.000Z'
     }
@@ -20,8 +27,11 @@ export const ROUTE_CATALOG = [
     sampleResponse: {
       ok: true,
       connection: {
-        engine: 'sqlite',
-        databasePath: 'data/gestor.db',
+        engine: 'mysql',
+        host: 'mysql-xxxx.aivencloud.com',
+        port: '12970',
+        database: 'defaultdb',
+        databasePath: 'defaultdb',
         status: 'connected'
       }
     }
@@ -41,6 +51,57 @@ export const ROUTE_CATALOG = [
           description: 'Lista productos del inventario.'
         }
       ]
+    }
+  },
+  {
+    method: 'GET',
+    path: '/api/meta/stats',
+    auth: 'Publica',
+    description: 'Estadisticas agregadas para dashboard: productos, stock, roles y tablas top/bajo stock.',
+    sampleResponse: {
+      ok: true,
+      summary: {
+        products_total: 18,
+        products_active: 15,
+        products_inactive: 3,
+        stock_total: 177,
+        inventory_value: 83456.9,
+        low_stock_total: 4,
+        users_total: 5,
+        admins_total: 2,
+        vendedores_total: 3,
+        users_active: 5,
+        users_inactive: 0
+      },
+      productStatus: [
+        { status: 'activo', total: 15 },
+        { status: 'inactivo', total: 3 }
+      ],
+      roleDistribution: [
+        { rol: 'Administrador', total: 2 },
+        { rol: 'Vendedor', total: 3 }
+      ],
+      topStock: [
+        {
+          id: 1,
+          nombre: 'Mouse RGB',
+          marca: 'HyperTech',
+          cantidad_stock: 24,
+          precio: 649.9,
+          status: 'activo'
+        }
+      ],
+      lowStock: [
+        {
+          id: 8,
+          nombre: 'SSD NVMe 1TB',
+          marca: 'FastCore',
+          cantidad_stock: 2,
+          precio: 1599,
+          status: 'activo'
+        }
+      ],
+      timestamp: '2026-02-10T18:30:00.000Z'
     }
   },
   {

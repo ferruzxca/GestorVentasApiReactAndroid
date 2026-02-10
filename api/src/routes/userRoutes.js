@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { db } from '../db.js';
+import { query } from '../db.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { validateUserPayload } from '../utils/validators.js';
 
@@ -8,15 +8,16 @@ const router = Router();
 router.use(requireAuth);
 router.use(requireRole('Administrador'));
 
-router.get('/', (_req, res) => {
-  const rows = db
-    .prepare('SELECT id, nombre, rol, status FROM usuarios ORDER BY id DESC')
-    .all();
-
-  return res.json({ ok: true, total: rows.length, data: rows });
+router.get('/', async (_req, res) => {
+  try {
+    const result = await query('SELECT id, nombre, rol, status FROM usuarios ORDER BY id DESC');
+    return res.json({ ok: true, total: result.rows.length, data: result.rows });
+  } catch (_error) {
+    return res.status(500).json({ ok: false, message: 'No fue posible consultar usuarios' });
+  }
 });
 
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   const errors = validateUserPayload(req.body);
 
   if (errors.length > 0) {
@@ -24,21 +25,24 @@ router.post('/', (req, res) => {
   }
 
   try {
-    const result = db
-      .prepare('INSERT INTO usuarios (nombre, rol, status) VALUES (?, ?, ?)')
-      .run(req.body.nombre.trim(), req.body.rol, req.body.status);
+    const insertResult = await query(
+      `INSERT INTO usuarios (nombre, rol, status)
+       VALUES (?, ?, ?)`,
+      [req.body.nombre.trim(), req.body.rol, req.body.status]
+    );
 
-    const user = db
-      .prepare('SELECT id, nombre, rol, status FROM usuarios WHERE id = ?')
-      .get(result.lastInsertRowid);
+    const readResult = await query(
+      'SELECT id, nombre, rol, status FROM usuarios WHERE id = ?',
+      [insertResult.insertId]
+    );
 
     return res.status(201).json({
       ok: true,
       message: 'Usuario creado correctamente',
-      data: user
+      data: readResult.rows[0] || null
     });
   } catch (error) {
-    if (error instanceof Error && error.message.includes('UNIQUE')) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'ER_DUP_ENTRY') {
       return res.status(409).json({
         ok: false,
         message: 'Ya existe un usuario con ese nombre'

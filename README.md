@@ -1,34 +1,34 @@
 # GestorTecnologia
 
 Proyecto de gestion de **Accesorios de Computo** con:
-- API REST (para web y app movil)
-- Web React (solo Administrador)
-- Despliegue en Docker y Render
+- API REST (para web React y aplicacion movil)
+- Web React (solo para rol `Administrador`)
+- Deploy en Render
+- Base de datos **MySQL en Aiven**
 
-No incluye desarrollo de app movil (solo API para surtirla).
+No incluye desarrollo de app movil en este alcance.
 
 ## Estructura
 
 ```
 GestorTecnologia/
-  api/                  # API Node.js + Express + SQLite
-  web/                  # Dashboard web React (Administrador)
-  docker-compose.yml    # Levantar API + Web en local
-  render.yaml           # Blueprint Render
+  api/
+    sql/aiven_init.sql      # Script SQL para Aiven MySQL
+  web/
+  docker-compose.yml        # Ejecuta web + api, usando DB remota
+  render.yaml               # Blueprint para Render
 ```
 
-## Reglas de rol
+## Roles
 
-- `Administrador`: acceso a pagina web y gestion de inventario.
-- `Vendedor`: acceso esperado para app movil (no desarrollada aqui).
+- `Administrador`: puede entrar a la web y gestionar inventario.
+- `Vendedor`: pensado para consumir API desde app movil.
 
-La web valida rol y bloquea usuarios `Vendedor`.
+## Base de datos (Aiven MySQL)
 
-## Base de datos
+Tablas requeridas:
 
-La API crea automaticamente las tablas requeridas:
-
-### Tabla `accesorios`
+### `accesorios`
 - `id`
 - `nombre`
 - `marca`
@@ -37,151 +37,86 @@ La API crea automaticamente las tablas requeridas:
 - `precio`
 - `status`
 
-### Tabla `usuarios`
+### `usuarios`
 - `id`
 - `nombre`
-- `rol` (`Administrador` | `Vendedor`)
+- `rol`
 - `status`
 
-Datos semilla:
+Script oficial de inicializacion:
+- `api/sql/aiven_init.sql`
+
+Ejecutalo en Aiven (MySQL CLI):
+
+```bash
+mysql \
+  --host="$AIVEN_HOST" \
+  --port="$AIVEN_PORT" \
+  --user="$AIVEN_USER" \
+  --password \
+  --ssl-mode=REQUIRED \
+  "$AIVEN_DB" < api/sql/aiven_init.sql
+```
+
+Datos semilla incluidos:
 - `Admin Principal` (`Administrador`)
 - `Vendedor Demo` (`Vendedor`)
 
-## Dashboard de API
+## API y dashboard
 
-Al iniciar API abre:
-- `GET /dashboard`
+- Dashboard API: `GET /dashboard`
+- Salud API: `GET /api/health`
+- Conexion DB: `GET /api/meta/connection`
+- Catalogo de rutas + JSON ejemplo: `GET /api/meta/routes`
 
-Incluye:
-- visor de funcionamiento (`/api/health`)
-- datos de conexion (`/api/meta/connection`)
-- rutas disponibles y JSON de ejemplo (`/api/meta/routes`)
-
-## Endpoints principales
-
-Publicos:
-- `GET /api/health`
-- `GET /api/meta/connection`
-- `GET /api/meta/routes`
-- `POST /api/auth/login`
-
-Con token (`Authorization: Bearer <token>`):
-- `GET /api/auth/profile`
-- `GET /api/productos`
-- `GET /api/productos/:id`
-
-Solo Administrador:
-- `POST /api/productos`
-- `PUT /api/productos/:id`
-- `PATCH /api/productos/:id/stock`
-- `DELETE /api/productos/:id` (borrado logico)
-- `GET /api/usuarios`
-- `POST /api/usuarios`
-
-## Como consumir la API (breve)
+## Consumo rapido
 
 1. Login:
 ```bash
-curl -X POST http://localhost:4000/api/auth/login \
+curl -X POST https://TU_API.onrender.com/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"nombre":"Admin Principal"}'
 ```
 
-2. Guarda `token` de la respuesta.
-
-3. Consulta inventario:
+2. Usa el token en headers:
 ```bash
-curl http://localhost:4000/api/productos \
+Authorization: Bearer TU_TOKEN
+```
+
+3. Consultar inventario:
+```bash
+curl https://TU_API.onrender.com/api/productos \
   -H "Authorization: Bearer TU_TOKEN"
 ```
 
-4. Crear producto (Administrador):
-```bash
-curl -X POST http://localhost:4000/api/productos \
-  -H "Authorization: Bearer TU_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "nombre":"Teclado Mecanico",
-    "marca":"TechPro",
-    "descripcion":"Switch rojo",
-    "cantidad_stock":20,
-    "precio":999,
-    "status":"activo"
-  }'
-```
+## Deploy en Render (API + Web)
 
-## Ejecutar en local
+Este repo ya incluye `render.yaml`.
 
-### Opcion 1: Docker Compose
-```bash
-docker compose up --build
-```
+1. Sube repo a GitHub.
+2. En Render usa **Blueprint** apuntando al repo.
+3. En servicio API define `DATABASE_URL` con la cadena `mysql://...` de Aiven.
+4. En API define:
+   - `MYSQL_SSL=true`
+   - `MYSQL_SSL_REJECT_UNAUTHORIZED=false` (o `true` si montas CA)
+5. Ajusta `CORS_ORIGIN` con la URL real del frontend en Render.
+6. En servicio web confirma `VITE_API_URL` con la URL real de la API.
 
-Servicios:
-- API: `http://localhost:4000`
-- Dashboard API: `http://localhost:4000/dashboard`
-- Web React: `http://localhost:5173`
+## Variables importantes API
 
-### Opcion 2: modo desarrollo
-Terminal 1:
-```bash
-cd api
-cp .env.example .env
-npm install
-npm run dev
-```
+- `DATABASE_URL` (Aiven MySQL)
+- `JWT_SECRET`
+- `CORS_ORIGIN`
+- `MYSQL_SSL`
+- `MYSQL_SSL_REJECT_UNAUTHORIZED`
+- `AUTO_INIT_DB`
+- `SEED_INITIAL_DATA`
 
-Terminal 2:
-```bash
-cd web
-cp .env.example .env
-npm install
-npm run dev
-```
+## Ramas Git solicitadas
 
-## Deploy en Render
+Ya existe flujo con ramas:
+- `api`
+- `web`
+- `mobile`
 
-Este repo incluye `render.yaml` con 2 servicios Docker:
-- `gestor-tecnologia-api`
-- `gestor-tecnologia-web`
-
-Pasos:
-1. Subir repo a GitHub.
-2. En Render, crear servicio con **Blueprint** apuntando al repo.
-3. Confirmar que `VITE_API_URL` del web apunte a tu URL real de API.
-4. Confirmar `CORS_ORIGIN` en API con URL real de web.
-
-## Flujo de ramas solicitado
-
-Desde `main`:
-
-```bash
-git checkout -b api
-# trabajo API
-
-git checkout main
-git checkout -b web
-# trabajo web
-
-git checkout main
-git checkout -b mobile
-# rama reservada para app movil (sin implementacion por ahora)
-```
-
-Merge final sugerido:
-
-```bash
-git checkout main
-git merge api
-git merge web
-git merge mobile
-```
-
-Luego push:
-
-```bash
-git push -u origin main
-git push -u origin api
-git push -u origin web
-git push -u origin mobile
-```
+Y merge final a `main`.

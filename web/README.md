@@ -1,6 +1,14 @@
 # Web - GestorTecnologia
 
-Panel en React para **Administrador**.
+Panel React para rol `Administrador`.
+
+## Configuracion
+
+Variables (`.env`):
+
+```env
+VITE_API_URL=https://TU_API.onrender.com
+```
 
 ## Comandos
 
@@ -10,18 +18,14 @@ npm run dev
 npm run build
 ```
 
-## Variables
+## Deploy en Render
 
-Archivo `.env`:
-
-```env
-VITE_API_URL=http://localhost:4000
-```
+Este proyecto se despliega con Docker (`web/Dockerfile`).
+En Render configura `VITE_API_URL` apuntando al servicio API desplegado en Render.
 
 ## Alcance
 
-- Login por nombre usando la API.
-- Solo permite acceso a rol `Administrador`.
-- CRUD de inventario.
-- Vista de usuarios/roles.
-- Visor de rutas JSON de la API.
+- Login por nombre usando API.
+- Bloquea acceso a rol `Vendedor`.
+- Gestion de inventario (CRUD).
+- Visor de estado y rutas JSON de la API.
