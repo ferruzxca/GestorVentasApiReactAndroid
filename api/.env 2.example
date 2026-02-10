@@ -1,0 +1,4 @@
+PORT=4000
+JWT_SECRET=cambia-este-secreto
+CORS_ORIGIN=*
+DB_PATH=data/gestor.db
