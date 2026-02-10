@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: gestor-tecnologia-api
+    runtime: docker
+    rootDir: api
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DB_PATH
+        value: data/gestor.db
+      - key: CORS_ORIGIN
+        value: https://gestor-tecnologia-web.onrender.com
+    disk:
+      name: gestor-tecnologia-db
+      mountPath: /app/data
+      sizeGB: 1
+
+  - type: web
+    name: gestor-tecnologia-web
+    runtime: docker
+    rootDir: web
+    plan: free
+    envVars:
+      - key: VITE_API_URL
+        value: https://gestor-tecnologia-api.onrender.com

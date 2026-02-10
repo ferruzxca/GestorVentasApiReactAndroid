@@ -1,0 +1,28 @@
+services:
+  api:
+    build:
+      context: ./api
+    container_name: gestor-api
+    ports:
+      - '4000:4000'
+    environment:
+      - PORT=4000
+      - JWT_SECRET=demo-secret-local
+      - DB_PATH=data/gestor.db
+      - CORS_ORIGIN=http://localhost:5173
+    volumes:
+      - api_data:/app/data
+
+  web:
+    build:
+      context: ./web
+      args:
+        VITE_API_URL: http://localhost:4000
+    container_name: gestor-web
+    ports:
+      - '5173:80'
+    depends_on:
+      - api
+
+volumes:
+  api_data:

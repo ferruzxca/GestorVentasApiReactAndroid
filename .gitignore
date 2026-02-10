@@ -1,0 +1,23 @@
+# macOS
+.DS_Store
+
+# Node
+node_modules
+npm-debug.log*
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Build
+dist
+coverage
+
+# Data
+data/*.db
+data/*.db-shm
+data/*.db-wal
+api/data/*.db
+api/data/*.db-shm
+api/data/*.db-wal
