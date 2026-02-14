@@ -8,6 +8,7 @@ import authRoutes from './routes/authRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import metaRoutes from './routes/metaRoutes.js';
+import publicRoutes from './routes/publicRoutes.js';
 import { initDatabase } from './db.js';
 
 const app = express();
@@ -34,6 +35,7 @@ app.use(express.json({ limit: '1mb' }));
 app.use(morgan('dev'));
 
 app.use('/api', metaRoutes);
+app.use('/api/public', publicRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/productos', productRoutes);
 app.use('/api/usuarios', userRoutes);

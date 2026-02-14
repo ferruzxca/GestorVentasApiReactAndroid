@@ -105,6 +105,28 @@ export const ROUTE_CATALOG = [
     }
   },
   {
+    method: 'GET',
+    path: '/api/public/catalogo',
+    auth: 'Publica',
+    description: 'Catalogo simplificado para clientes (sin autenticacion).',
+    sampleResponse: {
+      ok: true,
+      total: 2,
+      data: [
+        {
+          id: 1,
+          nombre: 'Mouse RGB',
+          marca: 'HyperTech',
+          descripcion: 'Mouse optico con iluminacion',
+          precio: 649.9,
+          disponible: true,
+          stock: 24
+        }
+      ],
+      timestamp: '2026-02-10T18:30:00.000Z'
+    }
+  },
+  {
     method: 'POST',
     path: '/api/auth/login',
     auth: 'Publica',

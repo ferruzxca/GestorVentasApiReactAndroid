@@ -2,7 +2,7 @@
 
 Proyecto de gestion de **Accesorios de Computo** con:
 - API REST (para web React y aplicacion movil)
-- Web React (solo para rol `Administrador`)
+- Web React con modo `Administrador` y modo `Cliente`
 - Deploy en Render
 - Base de datos **MySQL en Aiven**
 
@@ -68,6 +68,13 @@ Datos semilla incluidos:
 - Salud API: `GET /api/health`
 - Conexion DB: `GET /api/meta/connection`
 - Catalogo de rutas + JSON ejemplo: `GET /api/meta/routes`
+- Catalogo cliente simple (publico): `GET /api/public/catalogo`
+
+## Vistas web
+
+- Administrador: `/`
+- Cliente simple: `/cliente`
+- La vista cliente es PWA instalable en Android (Agregar a pantalla principal / Instalar app).
 
 ## Consumo rapido
 
@@ -87,6 +94,11 @@ Authorization: Bearer TU_TOKEN
 ```bash
 curl https://TU_API.onrender.com/api/productos \
   -H "Authorization: Bearer TU_TOKEN"
+```
+
+4. Catalogo publico para cliente (sin login):
+```bash
+curl https://TU_API.onrender.com/api/public/catalogo
 ```
 
 ## Deploy en Render (API + Web)

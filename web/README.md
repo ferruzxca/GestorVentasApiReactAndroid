@@ -1,6 +1,8 @@
 # Web - GestorTecnologia
 
-Panel React para rol `Administrador`.
+Panel React con dos modos:
+- `Administrador` en `/`
+- `Cliente simple` en `/cliente` (instalable en Android como PWA)
 
 ## Configuracion
 
@@ -29,3 +31,5 @@ En Render configura `VITE_API_URL` apuntando al servicio API desplegado en Rende
 - Bloquea acceso a rol `Vendedor`.
 - Gestion de inventario (CRUD).
 - Visor de estado y rutas JSON de la API.
+- Vista cliente simple (catalogo publico, busqueda, refresh).
+- Instalacion Android via PWA.

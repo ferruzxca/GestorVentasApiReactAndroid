@@ -43,6 +43,12 @@ npm run dev
 1. `POST /api/auth/login`
 2. Usar `Authorization: Bearer <token>`
 
+## Endpoint publico para cliente
+
+- `GET /api/public/catalogo`
+- No requiere token.
+- Regresa un catalogo simplificado (nombre, marca, descripcion, precio y disponibilidad).
+
 ## Variables de entorno
 
 - `PORT` (default `4000`)

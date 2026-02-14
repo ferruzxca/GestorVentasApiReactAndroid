@@ -331,3 +331,62 @@ pre {
     font-size: 0.85rem;
   }
 }
+
+.client-shell {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.client-header {
+  background: linear-gradient(145deg, rgba(122, 69, 255, 0.24), rgba(9, 9, 14, 0.9));
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 1rem;
+}
+
+.client-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.client-tools {
+  margin-top: 0.85rem;
+}
+
+.client-tools input {
+  width: 100%;
+}
+
+.client-grid {
+  margin-top: 0.85rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 0.75rem;
+}
+
+.client-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+}
+
+.client-card {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.client-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.client-card-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.2rem;
+}

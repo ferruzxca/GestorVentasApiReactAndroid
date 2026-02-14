@@ -3,6 +3,7 @@ import axios from 'axios';
 import './App.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+const CLIENT_PATH_PREFIX = '/cliente';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -23,7 +24,177 @@ function asNumber(value) {
   return Number.isNaN(parsed) ? 0 : parsed;
 }
 
-export default function App() {
+function formatCurrency(value) {
+  return new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN'
+  }).format(Number(value || 0));
+}
+
+function isClientModePath() {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  return window.location.pathname.startsWith(CLIENT_PATH_PREFIX);
+}
+
+function ClientCatalogApp() {
+  const [products, setProducts] = useState([]);
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState('');
+  const [lastUpdated, setLastUpdated] = useState('');
+  const [installPromptEvent, setInstallPromptEvent] = useState(null);
+  const [installMessage, setInstallMessage] = useState('');
+
+  const visibleProducts = useMemo(() => {
+    if (!search.trim()) {
+      return products;
+    }
+
+    const q = search.toLowerCase();
+
+    return products.filter((item) => {
+      return (
+        item.nombre.toLowerCase().includes(q) ||
+        item.marca.toLowerCase().includes(q) ||
+        item.descripcion.toLowerCase().includes(q)
+      );
+    });
+  }, [products, search]);
+
+  const loadCatalog = async (manual = false) => {
+    setError('');
+
+    if (manual) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+
+    try {
+      const { data } = await api.get('/api/public/catalogo');
+      setProducts(data.data || []);
+      setLastUpdated(data.timestamp || new Date().toISOString());
+    } catch (_error) {
+      setError('No fue posible cargar el catalogo. Intenta nuevamente.');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCatalog(false);
+
+    const handleBeforeInstallPrompt = (event) => {
+      event.preventDefault();
+      setInstallPromptEvent(event);
+      setInstallMessage('');
+    };
+
+    const handleInstalled = () => {
+      setInstallPromptEvent(null);
+      setInstallMessage('Aplicacion instalada correctamente.');
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleInstalled);
+    };
+  }, []);
+
+  const handleInstall = async () => {
+    if (!installPromptEvent) {
+      setInstallMessage('Si no aparece el boton de instalacion, usa "Agregar a pantalla de inicio" en Chrome.');
+      return;
+    }
+
+    installPromptEvent.prompt();
+    const choice = await installPromptEvent.userChoice;
+
+    if (choice.outcome === 'accepted') {
+      setInstallMessage('Instalacion iniciada.');
+    } else {
+      setInstallMessage('Instalacion cancelada por el usuario.');
+    }
+
+    setInstallPromptEvent(null);
+  };
+
+  return (
+    <div className="client-shell">
+      <header className="client-header">
+        <p className="badge">Cliente</p>
+        <h1>Catalogo de Accesorios</h1>
+        <p className="helper">
+          Vista simple para cliente. Abre en Android y toca <strong>Instalar app</strong>.
+        </p>
+
+        <div className="client-actions">
+          <button type="button" onClick={() => loadCatalog(true)} disabled={refreshing || loading}>
+            {refreshing ? 'Actualizando...' : 'Actualizar'}
+          </button>
+          <button type="button" onClick={handleInstall} className="ghost-button">
+            Instalar app
+          </button>
+          <a className="link-button" href="/">
+            Panel admin
+          </a>
+        </div>
+
+        <div className="client-tools">
+          <input
+            type="search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Buscar por nombre, marca o descripcion"
+          />
+          <p className="small-gap">
+            {loading ? 'Cargando catalogo...' : `${visibleProducts.length} productos encontrados`} | Ultima actualizacion:{' '}
+            {lastUpdated ? new Date(lastUpdated).toLocaleString('es-MX') : '-'}
+          </p>
+        </div>
+
+        {installMessage ? <p className="flash ok">{installMessage}</p> : null}
+        {error ? <p className="flash error">{error}</p> : null}
+      </header>
+
+      <main className="client-grid">
+        {!loading && visibleProducts.length === 0 ? (
+          <section className="panel client-empty">
+            <h2>Sin resultados</h2>
+            <p>No encontramos productos con ese filtro.</p>
+          </section>
+        ) : null}
+
+        {visibleProducts.map((item) => (
+          <article className="panel client-card" key={item.id}>
+            <div className="client-card-head">
+              <span className="badge">{item.marca}</span>
+              <span className={item.disponible ? 'ok' : 'error'}>
+                {item.disponible ? 'Disponible' : 'Agotado'}
+              </span>
+            </div>
+            <h2>{item.nombre}</h2>
+            <p className="helper">{item.descripcion}</p>
+            <div className="client-card-foot">
+              <strong>{formatCurrency(item.precio)}</strong>
+              <span className={item.stock <= 5 ? 'error' : 'ok'}>Stock: {item.stock}</span>
+            </div>
+          </article>
+        ))}
+      </main>
+    </div>
+  );
+}
+
+function AdminApp() {
   const [loginNombre, setLoginNombre] = useState('Admin Principal');
   const [token, setToken] = useState(localStorage.getItem('gt_token') || '');
   const [user, setUser] = useState(() => {
@@ -252,6 +423,9 @@ export default function App() {
           </form>
 
           <p className="helper">La API de prueba tambien incluye: Vendedor Demo (solo movil).</p>
+          <p className="helper">
+            Vista cliente simple: <a href="/cliente">/cliente</a>
+          </p>
           {message.text && <p className={`flash ${message.type}`}>{message.text}</p>}
         </div>
       </div>
@@ -272,6 +446,9 @@ export default function App() {
           </button>
           <a href={`${API_URL}/dashboard`} target="_blank" rel="noreferrer" className="link-button">
             Ver dashboard API
+          </a>
+          <a href="/cliente" className="link-button">
+            Ver modo cliente
           </a>
           <button onClick={handleLogout} className="ghost-button">
             Cerrar sesion
@@ -458,4 +635,8 @@ export default function App() {
       </main>
     </div>
   );
+}
+
+export default function App() {
+  return isClientModePath() ? <ClientCatalogApp /> : <AdminApp />;
 }
